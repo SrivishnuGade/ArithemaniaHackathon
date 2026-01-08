@@ -17,10 +17,10 @@ const TigerReserveDashboard = () => {
 
 
   // Lotka-Volterra simulation parameters with more realistic values
-  const alpha = 0.3; // prey growth rate (reduced to reflect slower reproduction)
-  const beta = 0.01; // predation rate (reduced to reflect lower predation efficiency)
-  const delta = 0.1; // predator death rate (reduced to reflect longer tiger lifespan)
-  const gamma = 0.001; // predator growth rate (reduced to reflect slower tiger reproduction)
+  const alpha = 0.4; // prey growth rate (reduced to slow down reproduction cycles)
+  const beta = 0.008; // predation rate (reduced to slow down decline cycles)
+  const delta = 0.2; // predator death rate (increased to keep predator population lower)
+  const gamma = 0.0005; // predator growth rate (reduced significantly to ensure prey > predator)
   const r = 0.1; // NDVI growth rate (reduced to reflect slower vegetation growth)
   const K = 0.8; // NDVI carrying capacity (reduced to reflect typical forest coverage)
   const c = 0.05; // vegetation consumption rate by prey (reduced to reflect lower impact)
@@ -36,7 +36,7 @@ const TigerReserveDashboard = () => {
     // Initial conditions based on reserve characteristics
     // Scale initial populations based on reserve area and tiger density
     const areaFactor = reserve.totalArea / 1000; // Normalize by 1000 sq km
-    let prey = Math.min(5000, Math.max(1000, areaFactor * 1000)); // Base prey population
+    let prey = Math.min(5000, Math.max(500, areaFactor * 400)); // Base prey population (start lower to match new equilibrium)
     let predator = Math.min(100, Math.max(10, tigerDensity * 2)); // Base tiger population
     let ndvi = Math.min(0.8, Math.max(0.3, tigerDensity / 50)); // Initial vegetation index
 
@@ -50,7 +50,7 @@ const TigerReserveDashboard = () => {
 
     for (let t = 0; t < timeSteps; t++) {
       // Modified Lotka-Volterra equations with density dependence
-      const preyGrowth = alpha * prey * (1 - prey / (5000 * areaFactor));
+      const preyGrowth = alpha * prey * (1 - prey / (10000 * areaFactor)); // Increased carrying capacity to reduce damping
       const preyDeath = beta * prey * predator;
       const predatorGrowth = gamma * predator * prey;
       const predatorDeath = delta * predator;
