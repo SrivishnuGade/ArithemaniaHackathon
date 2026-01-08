@@ -1,229 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import LVSimulation from './components/LVSimulation';
 import './TigerReserveDashboard.css';
 import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Import reserve images
-import bandipurImg from './assets/bandipur.jpeg';
-import periyarImg from './assets/periyar.jpeg';
-import nsrImg from './assets/nsr.jpeg';
-import kmtImg from './assets/kmt.jpeg';
-import bhadraImg from './assets/bhadra.jpeg';
-import anamalaiImg from './assets/anamalai.jpeg';
-import kaliImg from './assets/kali.jpeg';
-import mudumalaiImg from './assets/mudumalai.jpeg';
-import nagarholeImg from './assets/nagarhole.jpeg';
-import parambikulamImg from './assets/parambikulam.jpeg';
-import brtImg from './assets/brt.jpeg';
-import kawalImg from './assets/kawal.jpeg';
-import satyamangalamImg from './assets/sathyamangalam.jpeg';
+import { reserves } from './data/reserves';
 
 const TigerReserveDashboard = () => {
   const [activeReserve, setActiveReserve] = useState('Bandipur');
   const [showSidePanel, setShowSidePanel] = useState(true);
   const [simulationData, setSimulationData] = useState([]);
   const mapRef = useRef(null);
+  const navigate = useNavigate();
 
-  // Complete tiger reserve data with all provided information
-  const reserves = [
-    {
-      id: 1,
-      name: 'Bandipur',
-      image: bandipurImg,
-      region: 'Karnataka',
-      coreArea: 872.24,
-      bufferArea: 1155.57,
-      totalArea: 2007.81,
-      tigerDensity: 11,
-      notes: 'Contiguous with Nagarahole, Wayanad, and Mudumalai reserves.',
-      latMin: 11.59277778,
-      lonMin: 76.20472222,
-      latMax: 11.91722222,
-      lonMax: 76.85888889,
-    },
-    {
-      id: 2,
-      name: 'Periyar',
-      image: periyarImg,
-      region: 'Kerala',
-      coreArea: 881,
-      bufferArea: 148,
-      totalArea: 1029,
-      tigerDensity: 46,
-      notes: 'Known for significant biodiversity.',
-      latMin: 9.2989,
-      lonMin: 76.9367,
-      latMax: 9.6195,
-      lonMax: 77.4182,
-    },
-    {
-      id: 3,
-      name: 'Nagarjunsagar-Srisailam',
-      image: nsrImg,
-      region: 'Andhra Pradesh/Telangana',
-      coreArea: 2444,
-      bufferArea: 1160,
-      totalArea: 3604,
-      tigerDensity: 60,
-      notes: 'Largest tiger reserve in India, spanning Andhra Pradesh and Telangana.',
-      latMin: 15.3957,
-      lonMin: 78.6337,
-      latMax: 16.7101,
-      lonMax: 79.4238,
-    },
-    {
-      id: 4,
-      name: 'Kalakad Mundanthurai',
-      image: kmtImg,
-      region: 'Tamil Nadu',
-      coreArea: 895,
-      bufferArea: 706.542,
-      totalArea: 1601.542,
-      tigerDensity: 16.5,
-      notes: 'Part of the Agasthyamalai Biosphere Reserve.',
-      latMin: 8.41666667,
-      lonMin: 77.16666667,
-      latMax: 8.88333333,
-      lonMax: 77.58333333,
-    },
-    {
-      id: 5,
-      name: 'Bhadra',
-      image: bhadraImg,
-      region: 'Karnataka',
-      coreArea: 492.46,
-      bufferArea: 155.67,
-      totalArea: 648.13,
-      tigerDensity: 22.5,
-      notes: 'Known for rich flora and fauna.',
-      latMin: 13.41666667,
-      lonMin: 75.25,
-      latMax: 13.83333333,
-      lonMax: 75.83333333,
-    },
-    {
-      id: 6,
-      name: 'Anamalai',
-      image: anamalaiImg,
-      region: 'Tamil Nadu',
-      coreArea: 958,
-      bufferArea: 521,
-      totalArea: 1479,
-      tigerDensity: 15,
-      notes: 'Part of the Western Ghats.',
-      latMin: 10.21722222,
-      lonMin: 76.8175,
-      latMax: 10.55083333,
-      lonMax: 77.35111111,
-    },
-    {
-      id: 7,
-      name: 'Kali',
-      image: kaliImg,
-      region: 'Karnataka',
-      coreArea: 1220.18,
-      bufferArea: 1474.62,
-      totalArea: 2694.8,
-      tigerDensity: 39,
-      notes: 'Formerly known as Dandeli-Anshi.',
-      latMin: 14.9564,
-      lonMin: 74.2521,
-      latMax: 15.1656,
-      lonMax: 74.7196,
-    },
-    {
-      id: 8,
-      name: 'Mudumalai',
-      image: mudumalaiImg,
-      region: 'Tamil Nadu',
-      coreArea: 321,
-      bufferArea: 367.59,
-      totalArea: 688.59,
-      tigerDensity: 11,
-      notes: 'Part of the Nilgiri Biosphere Reserve.',
-      latMin: 11.53171944,
-      lonMin: 76.35802778,
-      latMax: 11.70513889,
-      lonMax: 76.75597222,
-    },
-    {
-      id: 9,
-      name: 'Nagarhole',
-      image: nagarholeImg,
-      region: 'Karnataka',
-      coreArea: 643.35,
-      bufferArea: 562.41,
-      totalArea: 1205.76,
-      tigerDensity: 12,
-      notes: 'High tiger density; contiguous with Bandipur, Mudumalai, Wayanad, and Biligiri Rangana Betta reserves.',
-      latMin: 11.75,
-      lonMin: 76.08333333,
-      latMax: 12.25,
-      lonMax: 76.41666667,
-    },
-    {
-      id: 10,
-      name: 'Parambikulam',
-      image: parambikulamImg,
-      region: 'Kerala',
-      coreArea: 390.89,
-      bufferArea: 252.77,
-      totalArea: 643.66,
-      tigerDensity: 18.5,
-      notes: 'Part of the Anamalai-Nelliyampathy landscape.',
-      latMin: 10.33333333,
-      lonMin: 76.58333333,
-      latMax: 10.43333333,
-      lonMax: 76.83333333,
-    },
-    {
-      id: 11,
-      name: 'Biligiri Ranganatha Temple',
-      image: brtImg,
-      region: 'Karnataka',
-      coreArea: 359.1,
-      bufferArea: 215.72,
-      totalArea: 574.82,
-      tigerDensity: 9,
-      notes: 'Connects Eastern and Western Ghats.',
-      latMin: 11.71666667,
-      lonMin: 77.01666667,
-      latMax: 12.15,
-      lonMax: 77.25,
-    },
-    {
-      id: 12,
-      name: 'Kawal',
-      image: kawalImg,
-      region: 'Telangana',
-      coreArea: 892.23,
-      bufferArea: 123.12,
-      totalArea: 1015.35,
-      tigerDensity: 'Undetermined',
-      notes: 'Potential to support higher tiger populations with improved conservation efforts.',
-      latMin: 18.98333333,
-      lonMin: 79.25,
-      latMax: 19.46666667,
-      lonMax: 79.46666667,
-    },
-    {
-      id: 13,
-      name: 'Sathyamangalam',
-      image: satyamangalamImg,
-      region: 'Tamil Nadu',
-      coreArea: 793.493,
-      bufferArea: 614.912,
-      totalArea: 1408.405,
-      tigerDensity: 'Undetermined',
-      notes: 'Connects Eastern and Western Ghats.',
-      latMin: 11.4875,
-      lonMin: 76.83333333,
-      latMax: 11.8,
-      lonMax: 77.45611111,
-    },
-  ];
 
   // Lotka-Volterra simulation parameters with more realistic values
   const alpha = 0.3; // prey growth rate (reduced to reflect slower reproduction)
@@ -546,16 +337,14 @@ const TigerReserveDashboard = () => {
                   style={{ height: '100%', width: '100%' }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Polygon 
-  positions={reservePolygon} 
-  color="red" 
-  eventHandlers={{
-    click: () => window.open(
-      `https://arithmania.vercel.app?lat=${(activeReserveInfo.latMin + activeReserveInfo.latMax) / 2}&lon=${(activeReserveInfo.lonMin + activeReserveInfo.lonMax) / 2}&name=${encodeURIComponent(activeReserveInfo.name)}`
-    )
-  }}
-  style={{ cursor: 'pointer' }}
-/>
+                  <Polygon
+                    positions={reservePolygon}
+                    color="red"
+                    eventHandlers={{
+                      click: () => navigate(`/3d/${activeReserve}`)
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
 
                   <MapZoom center={[
                     (activeReserveInfo.latMin + activeReserveInfo.latMax) / 2,
@@ -630,7 +419,7 @@ const TigerReserveDashboard = () => {
               <h3 className="text-lg font-bold text-gray-800 mb-3">VR Simulation</h3>
               <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                onClick={() => window.open('https://arithmania.vercel.app')}
+                onClick={() => navigate(`/3d/${activeReserve}`)}
               >
                 View Simulation
               </button>
@@ -690,9 +479,8 @@ const TigerReserveDashboard = () => {
                   {generateConservationRecommendations(activeReserveInfo, spatialData).map((rec, index) => (
                     <li key={index} className="insight-item">
                       <span
-                        className={`mr-2 ${
-                          rec.priority === 'high' ? 'text-red' : rec.priority === 'medium' ? 'text-amber' : 'text-green'
-                        }`}
+                        className={`mr-2 ${rec.priority === 'high' ? 'text-red' : rec.priority === 'medium' ? 'text-amber' : 'text-green'
+                          }`}
                       >
                         •
                       </span>
